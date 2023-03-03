@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Склад товаров</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h1>Склад товаров</h1>
+<label for="date">Выберите дату:</label>
+<input type="date" id="date" name="date">
+<button id="button" type="button">Применить</button>
+<br>
+<p id="info"></p>
+<div id="container">
+    <p>Нажмите кнопку, чтобы узнать цену.</p>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#button').click(function () {
+            $.ajax({
+                url: 'http://134.0.0.5',
+                method: 'GET',
+                data: {
+                    date: $('#date').val(),
+                    product_name: 'Левый носок',
+                },
+                success: function (JsonResponse) {
+                    let response = JSON.parse(JsonResponse);
+                    console.log(response)
+                    let data = response.data
+                    $('#container').html(`<p>цена левого носка - ${data.price}р</p><hr><p>остатки на складе - ${data.products_balance}</p>`);
+                },
+                error: function (error) {
+                    let err = JSON.parse(error.responseText).errors.join('<hr>')
+                    $('#container').html(`<div style="color: red">${err}</di>`);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
