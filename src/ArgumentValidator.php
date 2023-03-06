@@ -20,16 +20,21 @@ class ArgumentValidator {
 
   private function dateValidator(array $data): bool {
 
+    $result = TRUE;
     $date = $data['date'];
     $now = $data['now'] ?? 'now';
 
     $dateString = strtotime($date);
     $dateMaxString = strtotime($now);
 
-    $result = $dateString && $dateString <= $dateMaxString;
+    if (!$dateString) {
+      $this->setErrors(ArgumentResolver::DATE, 'Некорректная дата.');
+      $result = false;
+    }
 
-    if (!$result) {
-      $this->setErrors(ArgumentResolver::DATE, 'Некорректная дата');
+    if ($dateString > $dateMaxString) {
+      $this->setErrors(ArgumentResolver::DATE, 'Дата не может быть больше текущей.');
+      $result = false;
     }
 
     return $result;
