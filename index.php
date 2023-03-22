@@ -6,24 +6,27 @@ require __DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php';
 
 use App\ArgumentResolver;
 use App\ArgumentValidator;
+use App\DBConnection;
+use App\ErrorLogger;
 use App\InitOffersCommand;
 use App\Offers;
 use App\PriceHelper;
 use App\Products;
-use App\Response;
+use App\JsoneHttpResponse;
 
 $error = [];
 $data = [];
-(new InitOffersCommand())->execute();
+$connection = DBConnection::getConnection();
+$logger = new ErrorLogger();
+(new InitOffersCommand($connection))->execute();
 $httpStatusCode = 200;
-$offers = new Offers();
+$offers = new Offers($connection);
 
 $params = (new ArgumentResolver())->resolve();
-$validator = new ArgumentValidator();
-$validator->validate($params);
+$validator = new ArgumentValidator($logger);
 
-if (!$validator->hasErrors()) {
-  $productId = (new Products())->getProductIdByName($params[ArgumentResolver::PRODUCT_NAME]);
+if (!$logger->hasErrors() && $validator->validate($params)) {
+  $productId = (new Products($connection))->getProductIdByName($params[ArgumentResolver::PRODUCT_NAME]);
   $date = new DateTime($params[ArgumentResolver::DATE]);
   $offersData = $offers->getOffers($date->format('Y-m-d H:i:s:'), $productId);
   $quantity = array_column($offersData, 'quantity');
@@ -38,8 +41,8 @@ if (!$validator->hasErrors()) {
   ];
 }
 else {
-  $error = $validator->getErrors();
+  $error = $logger->getErrors();
   $httpStatusCode = 400;
 }
 
-(new Response())->send($data, $error, $httpStatusCode);
+(new JsoneHttpResponse())->response($data, $error, $httpStatusCode);

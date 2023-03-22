@@ -7,12 +7,12 @@ namespace App;
 
 use JetBrains\PhpStorm\NoReturn;
 
-class Response {
+class JsoneHttpResponse implements ResponseInterface {
 
   /**
    * @throws \JsonException
    */
-  #[NoReturn] public function send(array $data = [], array $errors = [], int $statusCode = 200): void {
+  #[NoReturn] public function response(array $data = [], array $errors = [], int $statusCode = 200): void {
     header('Access-Control-Allow-Origin: *', TRUE, $statusCode);
     echo json_encode(
       [

@@ -5,14 +5,23 @@ declare(strict_types=1);
 
 namespace App;
 
-class ArgumentValidator {
+class ArgumentValidator implements ValidatorInterface {
 
   public const REQUIRED_FIELDS = [
     ArgumentResolver::DATE,
     ArgumentResolver::PRODUCT_NAME,
   ];
 
-  public array $errors = [];
+  /**
+   * @var \App\LoggerInterface
+   */
+  private LoggerInterface $logger;
+
+
+  public function __construct(LoggerInterface $logger) {
+
+    $this->logger = $logger;
+  }
 
   public function validate(array $data): bool {
     return $this->validateRequired($data) && $this->dateValidator($data);
@@ -28,23 +37,16 @@ class ArgumentValidator {
     $dateMaxString = strtotime($now);
 
     if (!$dateString) {
-      $this->setErrors(ArgumentResolver::DATE, 'Некорректная дата.');
-      $result = false;
+      $this->logger->setError(ArgumentResolver::DATE, 'Некорректная дата.');
+      $result = FALSE;
     }
 
     if ($dateString > $dateMaxString) {
-      $this->setErrors(ArgumentResolver::DATE, 'Дата не может быть больше текущей.');
-      $result = false;
+      $this->logger->setError(ArgumentResolver::DATE, 'Дата не может быть больше текущей.');
+      $result = FALSE;
     }
 
     return $result;
-  }
-
-  /**
-   * @return array
-   */
-  public function getErrors(): array {
-    return $this->errors;
   }
 
   private function validateRequired(array $data): bool {
@@ -52,21 +54,13 @@ class ArgumentValidator {
 
     foreach (self::REQUIRED_FIELDS as $field) {
       if (empty($data[$field])) {
-        $this->setErrors($field, 'Обязательное поле.');
+        $this->logger->setError($field, 'Обязательное поле.');
 
         $result = FALSE;
       }
     }
 
     return $result;
-  }
-
-  private function setErrors(mixed $field, string $string): void {
-    $this->errors[] = [$field . ' - ' . $string];
-  }
-
-  public function hasErrors(): bool {
-    return !empty($this->errors);
   }
 
 }

@@ -7,23 +7,25 @@ namespace App;
 
 use PDO;
 
-class InitOffersCommand implements Command {
+class InitOffersCommand implements CommandInterface {
 
   private float $margin;
 
-  public function __construct(float $margin = 1.3) {
+  private ConnectionInterface|PDO $connection;
+
+  public function __construct(ConnectionInterface $connection, float $margin = 1.3) {
     $this->margin = $margin;
+    $this->connection = $connection;
   }
 
   public function execute(): void {
-    $dbh = DBConnection::getConnection();
-    $sth = $dbh->prepare("SELECT * FROM `deliveries` WHERE is_aprove = ?");
+    $sth = $this->connection->prepare("SELECT * FROM `deliveries` WHERE is_aprove = ?");
     $sth->execute([0]);
     $deliveries = $sth->fetchAll(PDO::FETCH_ASSOC);
 
     if ($deliveries) {
       foreach ($deliveries as $k => $delivery) {
-        $sth = $dbh->prepare(
+        $sth = $this->connection->prepare(
           "INSERT INTO `offers` 
                 SET `quantity` = :quantity,
                     `delivery_date` = :delivery_date,
@@ -42,7 +44,7 @@ class InitOffersCommand implements Command {
           ]
         );
 
-        $sth = $dbh->prepare("UPDATE `deliveries` SET `is_aprove` = :aprove WHERE `id` = :id");
+        $sth = $this->connection->prepare("UPDATE `deliveries` SET `is_aprove` = :aprove WHERE `id` = :id");
         $sth->execute(['aprove' => 1, 'id' => $delivery['id']]);
       }
     }
