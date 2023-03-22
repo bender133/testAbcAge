@@ -17,7 +17,7 @@ use App\JsoneHttpResponse;
 $error = [];
 $data = [];
 $connection = DBConnection::getConnection();
-$logger = new ErrorLogger();
+$logger = ErrorLogger::getLogger();
 (new InitOffersCommand($connection))->execute();
 $httpStatusCode = 200;
 $offers = new Offers($connection);

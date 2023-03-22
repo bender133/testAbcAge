@@ -7,7 +7,22 @@ namespace App;
 
 class ErrorLogger implements LoggerInterface {
 
-  public array $errors = [];
+  private array $errors = [];
+
+  private static LoggerInterface $logger;
+
+  public static function getLogger(): LoggerInterface {
+    if (!isset(self::$logger)) {
+      self::$logger = new self();
+    }
+    return self::$logger;
+  }
+
+  private function __construct() {
+  }
+
+  private function __clone() {
+  }
 
   public function setError(string $field, string $string): void {
     $this->errors[] = [$field . ' - ' . $string];
